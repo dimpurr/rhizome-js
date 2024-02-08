@@ -3,6 +3,18 @@ import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 
 const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) => {
     const id = node.attrs['data-uuid'];
+    const syncType = node.attrs['data-sync-type'];
+    const parentUuid = node.attrs['parent-uuid'];
+
+    // 创建引用块
+    const handleCreateReference = () => {
+        editor.commands.createReferenceBlock(id);
+    };
+
+    // 创建克隆块
+    const handleCreateClone = () => {
+        editor.commands.createCloneBlock(id, node);
+    };
 
     // 创建拖拽手柄
     const dragHandle = (
@@ -41,7 +53,11 @@ const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) 
             }}
         >
             <div className='flex'>{dragHandle}
-                <div style={{ marginRight: '10px', color: 'gray' }}>ID: {id}</div>
+                <button onClick={handleCreateReference}>🔗</button>
+                <button onClick={handleCreateClone}>🍴</button>
+                <div style={{ marginRight: '10px', color: 'gray' }}>
+                    ID: {id}{syncType && ` | Type: ${syncType}`}{parentUuid && ` | Parent: ${parentUuid}`}
+                </div>
             </div>
             {/* 使用 NodeViewContent 渲染节点内部内容 */}
             <NodeViewContent
