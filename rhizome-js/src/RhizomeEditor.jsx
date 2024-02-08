@@ -3,8 +3,8 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import extensions from './extensions';
 import Toolbar from './components/Toolbar';
 import EditorContentDisplay from './components/EditorContentDisplay';
+import EmojiPicker from 'emoji-picker-react'; // 导入EmojiPicker组件
 import './styles/editor.scss';
-
 
 const makeExtensionsDraggable = (extensions) => {
     return extensions.map(extension => {
@@ -40,6 +40,7 @@ const RhizomeEditor = () => {
     });
 
     const [editorJson, setEditorJson] = useState({});
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // 添加state来控制EmojiPicker的显示状态
 
     useEffect(() => {
         if (!editor) return;
@@ -54,6 +55,11 @@ const RhizomeEditor = () => {
         };
     }, [editor]);
 
+    const insertEmoji = (emoji) => {
+        // alert(`Inserting emoji: ${emoji}`);
+        editor.chain().focus().insertContent(emoji).run(); // 使用insertContent方法插入emoji
+    };
+
     if (!editor) {
         return null;
     }
@@ -62,9 +68,19 @@ const RhizomeEditor = () => {
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
             <div>
                 <Toolbar editor={editor} />
+                {showEmojiPicker && ( // 根据showEmojiPicker状态决定是否显示EmojiPicker
+                    <EmojiPicker onEmojiClick={(emojiData, event) => {
+                        // 处理选择的emoji
+                        // 将选定的emoji插入到编辑器中
+                        insertEmoji(emojiData.emoji);
+                        setShowEmojiPicker(false); // 插入后隐藏EmojiPicker
+                    }} />
+                )}
+                <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>Toggle Emoji Picker</button> {/* 添加按钮来显示/隐藏EmojiPicker */}
                 <EditorContent editor={editor} />
             </div>
             <EditorContentDisplay editorJson={editorJson} />
+
         </div>
     );
 };
