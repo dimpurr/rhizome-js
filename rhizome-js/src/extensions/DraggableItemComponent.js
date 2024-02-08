@@ -4,7 +4,7 @@ import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) => {
     const id = node.attrs['data-uuid'];
     const syncType = node.attrs['data-sync-type'];
-    const parentUuid = node.attrs['parent-uuid'];
+    const parentUuid = node.attrs['data-parent-uuid'];
 
     // 创建引用块
     const handleCreateReference = () => {

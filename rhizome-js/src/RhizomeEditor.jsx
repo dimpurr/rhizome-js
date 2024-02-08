@@ -39,14 +39,14 @@ const RhizomeEditor = () => {
         content: enrichContentWithUuids(`
             <p>This is a boring paragraph.</p>
             <div data-type="draggable-item">
-                <p>Followed by a fancy draggable item.</p>
+                <p>aaa</p>
                 <div data-type="draggable-item">
-                <p>Followed by a fancy draggable item.</p>
+                <p>bbb.</p>
                 <div data-type="draggable-item">
-                <p>Followed by a fancy draggable item.</p>
+                <p>ccc.</p>
             </div>
             <div data-type="draggable-item">
-                <p>Followed by a fancy draggable item.</p>
+                <p>ddd.</p>
             </div>
             </div>
             </div>
