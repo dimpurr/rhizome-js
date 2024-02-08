@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// styles.scss
+$body-color: #333;
+
+body {
+    font-family: sans-serif;
+    color: $body-color;
+}
+
+#toolbar button.is-active {
+    background-color: #007bff;
+    color: white;
+}
