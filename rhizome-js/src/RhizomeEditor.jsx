@@ -5,6 +5,7 @@ import Toolbar from './components/Toolbar';
 import EditorContentDisplay from './components/EditorContentDisplay';
 import EmojiPicker from 'emoji-picker-react'; // 导入EmojiPicker组件
 import './styles/editor.scss';
+import { v4 as uuidv4 } from 'uuid'; // 引入UUID生成库
 
 const makeExtensionsDraggable = (extensions) => {
     return extensions.map(extension => {
@@ -18,11 +19,24 @@ const makeExtensionsDraggable = (extensions) => {
     });
 };
 
+const enrichContentWithUuids = (htmlContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+
+    doc.querySelectorAll('div[data-type="draggable-item"]').forEach(node => {
+        if (!node.getAttribute('data-uuid')) { // 检查是否缺少UUID
+            const uuid = uuidv4(); // 生成UUID
+            node.setAttribute('data-uuid', uuid); // 赋予UUID
+        }
+    });
+
+    return doc.body.innerHTML; // 返回处理后的HTML字符串
+};
 
 const RhizomeEditor = () => {
     const editor = useEditor({
         extensions: makeExtensionsDraggable(extensions),
-        content: `
+        content: enrichContentWithUuids(`
             <p>This is a boring paragraph.</p>
             <div data-type="draggable-item">
                 <p>Followed by a fancy draggable item.</p>
@@ -36,7 +50,7 @@ const RhizomeEditor = () => {
             </div>
             </div>
             </div>
-        `,
+        `),
     });
 
     const [editorJson, setEditorJson] = useState({});

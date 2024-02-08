@@ -2,6 +2,8 @@ import React from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 
 const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) => {
+    const id = node.attrs['data-uuid'];
+
     // 创建拖拽手柄
     const dragHandle = (
         <div
@@ -29,6 +31,7 @@ const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) 
             className="draggable-item"
             style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 padding: '10px',
                 margin: '10px 0',
@@ -37,7 +40,9 @@ const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) 
                 border: '1px solid #d1d5db',
             }}
         >
-            {dragHandle}
+            <div className='flex'>{dragHandle}
+                <div style={{ marginRight: '10px', color: 'gray' }}>ID: {id}</div>
+            </div>
             {/* 使用 NodeViewContent 渲染节点内部内容 */}
             <NodeViewContent
                 className="content"
