@@ -78,19 +78,39 @@ export const DraggableItem = Node.create({
 
 
     onTransaction({ editor, transaction }) {
-        transaction.steps.forEach(step => {
-            step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
-                editor.state.doc.nodesBetween(newStart, newEnd, (node, pos) => {
-                    if (node.attrs['data-sync-type'] === 'synced' || node.attrs['data-sync-type'] === 'cloned') {
-                        // 注意，这里我们不再使用 deepCopyNode 来复制节点
-                        // 而是直接使用 node.content 作为要同步的内容
-                        const uuid = node.attrs['data-parent-uuid'];
-                        syncNodeContentOnly(editor, uuid, node.content);
-                    }
-                });
+    const changes = []; // 用于收集所有更改
+
+    transaction.steps.forEach(step => {
+        step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
+            editor.state.doc.nodesBetween(newStart, newEnd, (node, pos) => {
+                if (node.attrs['data-sync-type'] === 'synced') {
+                    // 收集需要同步的内容，仅针对 'synced' 类型
+                    const uuid = node.attrs['data-parent-uuid'];
+                    changes.push({ uuid, content: node.content });
+                }
             });
         });
-    },
+    });
+
+    if (changes.length > 0) {
+        // 创建一个新的事务来应用所有更改
+        const syncTransaction = editor.state.tr;
+        changes.forEach(({ uuid, content }) => {
+            const targetNodeInfo = findNodeById(uuid, editor.state.doc);
+            if (targetNodeInfo) {
+                const { pos } = targetNodeInfo;
+                const startPos = pos + 1; // 跳过节点本身的开头标签
+                const endPos = pos + targetNodeInfo.node.nodeSize - 1; // 跳过节点本身的结束标签
+                syncTransaction.replaceWith(startPos, endPos, content);
+            }
+        });
+
+        if (syncTransaction.docChanged) {
+            editor.view.dispatch(syncTransaction);
+        }
+    }
+},
+
 
 
     addAttributes() {
