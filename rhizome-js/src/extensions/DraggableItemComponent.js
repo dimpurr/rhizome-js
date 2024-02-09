@@ -38,6 +38,10 @@ const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) 
         </div>
     );
 
+    const content = node.attrs['data-type'] === 'synced'
+        ? blockRegistry[node.attrs['data-parent-uuid']]?.content
+        : node.content;
+
     return (
         <NodeViewWrapper
             className="draggable-item"
@@ -63,6 +67,7 @@ const DraggableItemComponent = ({ node, updateAttributes, deleteNode, editor }) 
             <NodeViewContent
                 className="content"
                 style={{ outline: 'none', flexGrow: 1 }}
+                content={content}
             />
         </NodeViewWrapper>
     );

@@ -7,6 +7,46 @@ import EmojiPicker from 'emoji-picker-react'; // 导入EmojiPicker组件
 import './styles/editor.scss';
 import { v4 as uuidv4 } from 'uuid'; // 引入UUID生成库
 
+const [blockRegistry, setBlockRegistry] = useState({});
+
+
+useEffect(() => {
+    if (!editor) return;
+
+    // Initialize or update the registry with the editor's content
+    const updateRegistry = () => {
+        const json = editor.getJSON();
+        const newRegistry = {}; // This will be a new state of the registry
+
+        // Loop through document to populate registry
+        const populateRegistry = (node, parentUuid = null) => {
+            if (node.type === 'draggableItem') {
+                const uuid = node.attrs['data-uuid'];
+                newRegistry[uuid] = {
+                    content: node.content,
+                    parentUuid,
+                };
+
+                node.content.forEach(childNode => populateRegistry(childNode, uuid));
+            } else {
+                node.content.forEach(childNode => populateRegistry(childNode, parentUuid));
+            }
+        };
+
+        populateRegistry(json.content[0]); // Assuming the document is always wrapped in a top-level node
+        setBlockRegistry(newRegistry);
+    };
+
+    updateRegistry();
+
+    // Subscribe to editor updates to refresh the registry
+    editor.on('update', updateRegistry);
+
+    return () => {
+        editor.off('update', updateRegistry);
+    };
+}, [editor]);
+
 const makeExtensionsDraggable = (extensions) => {
     return extensions.map(extension => {
         // 检查扩展是否已经有 draggable 设置，如果没有，则设置为 true
