@@ -2,6 +2,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import DraggableItemComponent from './DraggableItemComponent';
+import { ReplaceStep, ReplaceAroundStep } from 'prosemirror-transform';
 import { v4 as uuidv4 } from 'uuid'; // 引入uuid生成器
 
 function deepCopyNode(node, schema, actionType = 'sync', originalUuid) {
@@ -43,12 +44,40 @@ function findNodeById(id, doc) {
 }
 
 
+function syncNodeChanges(editor, uuid, content) {
+    const targetNodeInfo = findNodeById(uuid, editor.state.doc);
+    if (targetNodeInfo) {
+        const { node, pos } = targetNodeInfo;
+        const transaction = editor.state.tr;
+        transaction.replaceWith(pos, pos + node.nodeSize, content);
+        editor.view.dispatch(transaction);
+    }
+}
 
 export const DraggableItem = Node.create({
     name: 'draggableItem',
     group: 'block',
     content: 'block+',
     draggable: true,
+
+
+    onTransaction({ editor, transaction }) {
+        // console.log('transaction', transaction);
+        transaction.steps.forEach(step => {
+            // console.log('step', step);
+            step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
+                editor.state.doc.nodesBetween(newStart, newEnd, (node, pos) => {
+                    if (node.attrs['data-sync-type'] === 'synced' || node.attrs['data-sync-type'] === 'cloned') {
+                        const uuid = node.attrs['data-parent-uuid'];
+                        const deepCopiedNode = deepCopyNode(node, editor.schema, node.attrs['data-sync-type'], uuid);
+                        console.log('deepCopiedNode', uuid);
+                        syncNodeChanges(editor, uuid, deepCopiedNode);
+                    }
+                });
+            });
+        });
+    },
+
 
     addAttributes() {
         return {
