@@ -54,6 +54,21 @@ function syncNodeChanges(editor, uuid, content) {
     }
 }
 
+function syncNodeContentOnly(editor, uuid, nodeContent) {
+    const targetNodeInfo = findNodeById(uuid, editor.state.doc);
+    if (targetNodeInfo) {
+        const { pos } = targetNodeInfo;
+        // 找到目标节点的内容位置，准备替换内容
+        const startPos = pos + 1; // 跳过节点本身的开头标签
+        const endPos = pos + targetNodeInfo.node.nodeSize - 1; // 跳过节点本身的结束标签
+
+        const transaction = editor.state.tr;
+        // 仅替换内容，保留原节点的 data- 属性不变
+        transaction.replaceWith(startPos, endPos, nodeContent);
+        editor.view.dispatch(transaction);
+    }
+}
+
 export const DraggableItem = Node.create({
     name: 'draggableItem',
     group: 'block',
@@ -61,17 +76,16 @@ export const DraggableItem = Node.create({
     draggable: true,
 
 
+
     onTransaction({ editor, transaction }) {
-        // console.log('transaction', transaction);
         transaction.steps.forEach(step => {
-            // console.log('step', step);
             step.getMap().forEach((oldStart, oldEnd, newStart, newEnd) => {
                 editor.state.doc.nodesBetween(newStart, newEnd, (node, pos) => {
                     if (node.attrs['data-sync-type'] === 'synced' || node.attrs['data-sync-type'] === 'cloned') {
+                        // 注意，这里我们不再使用 deepCopyNode 来复制节点
+                        // 而是直接使用 node.content 作为要同步的内容
                         const uuid = node.attrs['data-parent-uuid'];
-                        const deepCopiedNode = deepCopyNode(node, editor.schema, node.attrs['data-sync-type'], uuid);
-                        console.log('deepCopiedNode', uuid);
-                        syncNodeChanges(editor, uuid, deepCopiedNode);
+                        syncNodeContentOnly(editor, uuid, node.content);
                     }
                 });
             });
