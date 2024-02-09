@@ -137,24 +137,14 @@ export const DraggableItem = Node.create({
                     attrs: { 'data-uuid': uuidv4() }, // 为新节点生成UUID
                 });
             },
-            // Modify createReferenceBlock and createCloneBlock in DraggableItem
             createReferenceBlock: (id) => ({ chain, state }) => {
                 return chain().focus().command(({ tr, state }) => {
-                    const { node } = findNodeById(id, state.doc);
+                    const { node, pos } = findNodeById(id, state.doc); // 查找原始节点及其位置
                     if (!node) return false;
 
-                    // For synced blocks, we no longer deep copy the node content.
-                    // Instead, we insert a new node that refers to the original node's UUID.
-                    const newNode = {
-                        type: 'draggableItem',
-                        attrs: {
-                            'data-uuid': uuidv4(),
-                            'data-type': 'synced',
-                            'data-parent-uuid': node.attrs['data-uuid'],
-                        },
-                    };
-
-                    tr.insert(state.selection.anchor, state.schema.nodes.draggableItem.createAndFill(newNode.attrs));
+                    const endPos = pos + node.nodeSize; // 计算当前节点结束的位置
+                    const nodeCopy = deepCopyNode(node, state.schema, 'synced', node.attrs['data-uuid']); // 深拷贝节点，并标记为 synced
+                    tr.insert(endPos, nodeCopy); // 在结束位置之后插入节点
                     return true;
                 }).run();
             },
